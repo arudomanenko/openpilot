@@ -161,7 +161,7 @@ void Panda::handle_usb_issue(int err, const char func[]) {
   // TODO: check other errors, is simply retrying okay?
 }
 
-int Panda::usb_write(uint8_t bRequest, uint16_t wValue, uint16_t wIndex, unsigned int timeout) {
+int Panda::usb_write(uint8_t bRequest, uint16_t wValue, uint16_t wIndex, uint16_t wLength, unsigned int timeout) {
   int err;
   const uint8_t bmRequestType = LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE;
 
@@ -171,7 +171,7 @@ int Panda::usb_write(uint8_t bRequest, uint16_t wValue, uint16_t wIndex, unsigne
 
   std::lock_guard lk(usb_lock);
   do {
-    err = libusb_control_transfer(dev_handle, bmRequestType, bRequest, wValue, wIndex, NULL, 0, timeout);
+    err = libusb_control_transfer(dev_handle, bmRequestType, bRequest, wValue, wIndex, NULL, wLength, timeout);
     if (err < 0) handle_usb_issue(err, __func__);
   } while (err < 0 && connected);
 
@@ -248,7 +248,7 @@ int Panda::usb_bulk_read(unsigned char endpoint, unsigned char* data, int length
 }
 
 void Panda::set_safety_model(cereal::CarParams::SafetyModel safety_model, uint32_t safety_param) {
-  usb_write(0xdc, (uint16_t)safety_model, safety_param);
+  usb_write(0xdc, (uint16_t)safety_model, safety_param, 42U);  // temp: test
 }
 
 void Panda::set_alternative_experience(uint16_t alternative_experience) {
